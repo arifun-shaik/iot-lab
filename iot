@@ -1,0 +1,650 @@
+1a.
+
+String voice = "";
+void setup()
+{
+ Serial.begin(9600);
+ pinMode(D1,OUTPUT);
+}
+void loop()
+{
+ while(Serial.available())
+ {
+ char c = Serial.read();
+ voice = voice + c;
+ }
+Serial.println(voice);
+if(voice == "light on")
+{
+ digitalWrite(D1,LOW);// Relay module needs a low to TURN ON
+}
+if(voice == "light off")
+{
+ digitalWrite(D1,HIGH);// Relay module needs a HIGH to TURN OFF
+}
+voice = "";
+delay(1000);
+}
+(b)
+
+void setup() {
+pinMode(D3,INPUT);
+pinMode(D4,OUTPUT);
+}
+void loop() {
+int button=digitalRead(D3);
+if(button==1){
+digitalWrite(D4,LOW);
+delay(100);
+}
+else{
+digitalWrite(D4,HIGH);
+delay(100);
+}
+}
+ 1c.
+
+#include <Servo.h>
+Servo MyServo1;
+Servo MyServo2;
+int Servo1_Position;
+int Servo2_Position;
+void setup() {
+ Serial.begin(9600);
+ MyServo1.attach(5);
+ MyServo2.attach(6);
+}
+void loop() {
+ Serial.print("Y:");
+ Serial.println(analogRead(A0));
+ Serial.print("X:");
+ Serial.println(analogRead(A1));
+ //Controlling Servo 1
+ Servo1_Position = analogRead(A0); //Reading Joystick Y position
+(Verical)
+ Servo1_Position = map(Servo1_Position, 0, 1023, 0, 180);
+ MyServo1.write(Servo1_Position);
+ delay(15);
+ //Controlling Servo 2
+ Servo2_Position = analogRead(A1); //Reading Joystick X position
+(Horizontal)
+ Servo2_Position = map(Servo2_Position, 0, 1023, 0, 180);
+ MyServo2.write(Servo2_Position);
+ delay(15);
+}
+
+
+2.
+
+#define trigger_pin 12 //D6 pin of Nodemcu
+#define Echo_pin 14 //D5 pin of Nodemcu
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27,16,2);
+/* two variables to store duraion and distance value */
+long duration;
+int distance;
+/* configure D5 and D6 as digital input and output respectively */
+void setup() {
+ pinMode(trigger_pin, OUTPUT); // configure the trigger_pin(D9) as an
+Output
+ pinMode(Echo_pin, INPUT); // configure the Echo_pin(D11) as an Input
+ Serial.begin(9600); // Enable the serial with 9600 baud rate
+ lcd.init();
+ lcd.backlight();
+}
+void loop() {
+
+digitalWrite(trigger_pin, LOW); //set trigger signal low for 2us
+delayMicroseconds(2);
+/*send 10 microsecond pulse to trigger pin of HC-SR04 */
+digitalWrite(trigger_pin, HIGH); // make trigger pin active high
+delayMicroseconds(10); // wait for 10 microseconds
+digitalWrite(trigger_pin, LOW); // make trigger pin active low
+/*Measure the Echo output signal duration or pulss width */
+8
+duration = pulseIn(Echo_pin, HIGH); // save time duration value in
+"duration variable
+distance= duration*0.034/2; //Convert pulse duration into distance
+// print measured distance value on Arduino serial monitor
+Serial.print("Distance: ");
+Serial.print(distance);
+Serial.println(" cm");
+// print measured distance value on LCD display
+lcd.setCursor(0,0);
+lcd.print("Distance=");
+lcd.print(distance);
+delay(500);
+lcd.clear();
+}
+
+3a.
+
+const int ledPin = 5;
+const int ldrPin = A0;
+void setup()
+{
+Serial.begin(9600);
+pinMode(ledPin, OUTPUT);
+pinMode(ldrPin, INPUT);
+}
+void loop()
+{
+ int ldrStatus = analogRead(ldrPin);
+if (ldrStatus <=300)
+ {
+ digitalWrite(ledPin, HIGH);
+ Serial.print(ldrStatus);
+ Serial.println("LDR is DARK, Relay is ON");
+}
+else
+{
+ digitalWrite(ledPin, LOW);
+ Serial.println("Relay is OFF");
+}
+}
+
+3b.
+
+int buzzer = D5; //Buzzer alarm connected to D5 of nodemcu
+int PIRsensor = D1; //PIR sensor output connected to D1 of nodemcu
+void setup() {
+ Serial.begin(9600);
+ pinMode(PIRsensor, INPUT); // PIR sensor as input
+ pinMode(buzzer, OUTPUT); // Buzzer alaram as output
+ digitalWrite (buzzer, LOW);// Initially buzzer off
+}
+void loop(){
+ int state = digitalRead(PIRsensor); //Continuously check the state of PIR
+sensor
+ delay(500); //Check state of PIR after every half second
+
+ if(state == HIGH){
+ digitalWrite (buzzer, HIGH); //If intrusion detected ring the buzzer
+ delay(5000);
+ delay(5000);
+ delay(5000); //Ring buzzer for 15 seconds
+ Serial.println("Motion detected!");
+ }
+ else {
+ digitalWrite (buzzer, LOW); //No intrusion Buzzer off
+ Serial.println("Motion absent!");
+ }
+}
+
+3c.
+
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27,16,2);
+#include "DHT.h"
+#define DHTTYPE DHT11
+#define dht_dpin D4
+DHT dht(dht_dpin, DHTTYPE);
+void setup(void)
+{
+ dht.begin();
+ lcd.init();
+ lcd.backlight();
+ Serial.begin(9600);
+}
+void loop() {
+ float h = dht.readHumidity();
+ float t = dht.readTemperature();
+ Serial.print("Current humidity = ");
+ Serial.print(h);
+ Serial.println("% ");
+ Serial.print("temperature = ");
+ Serial.print(t);
+ Serial.println("C ");
+ lcd.setCursor(0,0);
+ lcd.print("humidity = ");
+ lcd.print(h);
+ lcd.print("%");
+ lcd.setCursor(0,1);
+ lcd.print("temperature = ");
+ lcd.print(t);
+ lcd.print("C ");
+ }
+
+4a.
+
+import RPi.GPIO as gp
+from time import sleep
+gp.setmode(gp.BOARD)
+gp.setup(12,gp.IN)
+gp.setup(32,gp.OUT)
+gp.setup(36,gp.OUT)
+while True:
+ print(not gp.input(12))
+ gp.output(32,not gp.input(12))
+ gp.output(36,not gp.input(12)) 
+
+4b.
+
+import RPi.GPIO as GPIO
+from time import sleep
+import sys
+#assign GPIO pins for motor
+motor_channel = (29,31,33,35)
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+#for defining more than 1 GPIO channel as input/output use
+GPIO.setup(motor_channel, GPIO.OUT)
+motor_direction = input('select motor direction a=anticlockwise, c=clockwise: ')
+while True:
+ try:
+16
+ if(motor_direction == 'c'):
+ print('motor running clockwise\n')
+ GPIO.output(motor_channel, (GPIO.HIGH,GPIO.LOW,GPIO.LOW,GPIO.HIGH))
+ sleep(0.02)
+ GPIO.output(motor_channel, (GPIO.HIGH,GPIO.HIGH,GPIO.LOW,GPIO.LOW))
+ sleep(0.02)
+ GPIO.output(motor_channel, (GPIO.LOW,GPIO.HIGH,GPIO.HIGH,GPIO.LOW))
+ sleep(0.02)
+ GPIO.output(motor_channel, (GPIO.LOW,GPIO.LOW,GPIO.HIGH,GPIO.HIGH))
+ sleep(0.02)
+ elif(motor_direction == 'a'):
+ print('motor running anti-clockwise\n')
+ GPIO.output(motor_channel, (GPIO.HIGH,GPIO.LOW,GPIO.LOW,GPIO.HIGH))
+ sleep(0.02)
+ GPIO.output(motor_channel, (GPIO.LOW,GPIO.LOW,GPIO.HIGH,GPIO.HIGH))
+ sleep(0.02)
+ GPIO.output(motor_channel, (GPIO.LOW,GPIO.HIGH,GPIO.HIGH,GPIO.LOW))
+ sleep(0.02)
+ GPIO.output(motor_channel, (GPIO.HIGH,GPIO.HIGH,GPIO.LOW,GPIO.LOW))
+ sleep(0.02)
+
+4c.
+
+#include the library
+from gpiozero import MotionSensor,Buzzer,LED
+# include the PIR sensor pin
+pirSensor = MotionSensor(22)
+# Include the buzzer pin
+buzzer = Buzzer(27)
+# Include the LED bulb pin
+led = LED(17)
+while True:
+ pirSensor.wait_for_motion()# Detect the motion
+ buzzer.on()# Turn on the buzzer
+ led.on() # Turn on the LED bulb
+ print("Motion")
+ pirSensor.wait_for_no_motion()# Detect the no motion
+ print("No motion")
+ buzzer.off()#Turn off the buzzer
+ led.off()# Turn off the LED bulb
+
+4d.
+
+from gpiozero import MotionSensor, LED
+from time import sleep
+pir = MotionSensor(4)
+relay = LED(17)
+while True:
+ pir.when_motion = relay.on
+ pir.when_no_motion = relay.off
+
+6.
+
+#define BLYNK_TEMPLATE_ID "TMPLeSZ6uL3B"
+#define BLYNK_DEVICE_NAME "helloworld device"
+#define BLYNK_AUTH_TOKEN "hiIaGur_T54_fwCCbvaYEwuprpCc_nqo"
+// Replace above three lines with your BLYNK_TEMPLATE_ID,
+//BLYNK_DEVICE_NAME, BLYNK_AUTH_TOKEN
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "happyfy"; //Replace happyfy with your hotspot name
+char pass[] = "asdfghjkl"; // Replace asdfghjkl with your hotspot password
+// This function is called every time the Virtual Pin 0 state changes
+BLYNK_WRITE(V0)
+{
+ int value = param.asInt();
+ value ? digitalWrite(D0, HIGH) : digitalWrite(D0, LOW);
+}
+BLYNK_WRITE(V1)
+{
+ int value = param.asInt();
+ value ? digitalWrite(D4, HIGH) : digitalWrite(D4, LOW);
+}
+
+BLYNK_WRITE(V2)
+{
+ int value = param.asInt();
+ value ? digitalWrite(D8, HIGH) : digitalWrite(D8, LOW);
+}
+void setup()
+{
+ pinMode(D0, OUTPUT);
+ pinMode(D4, OUTPUT);
+ pinMode(D8, OUTPUT);
+ Serial.begin(115200);
+ Blynk.begin(auth, ssid, pass);
+}
+void loop()
+{
+ Blynk.run();
+}
+
+7.
+
+#define BLYNK_TEMPLATE_ID "TMPLeSZ6uL3B"
+#define BLYNK_DEVICE_NAME "helloworld device"
+#define BLYNK_AUTH_TOKEN "hiIaGur_T54_fwCCbvaYEwuprpCc_nqo"
+// Replace above three lines with your BLYNK_TEMPLATE_ID,
+//BLYNK_DEVICE_NAME, BLYNK_AUTH_TOKEN
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "happyfy"; //Replace happyfy with your hotspot name
+char pass[] = "asdfghjkl"; // Replace asdfghjkl with your hotspot password
+// This function is called every time the Virtual Pin 0 state changes
+BLYNK_WRITE(V0)
+{
+ int value = param.asInt();
+ value ? digitalWrite(D0, HIGH) : digitalWrite(D0, LOW);
+}
+BLYNK_WRITE(V1)
+{
+ int value = param.asInt();
+ value ? digitalWrite(D4, HIGH) : digitalWrite(D4, LOW);
+}
+
+BLYNK_WRITE(V2)
+{
+ int value = param.asInt();
+ value ? digitalWrite(D8, HIGH) : digitalWrite(D8, LOW);
+}
+void setup()
+{
+ pinMode(D0, OUTPUT);
+ pinMode(D4, OUTPUT);
+ pinMode(D8, OUTPUT);
+ Serial.begin(115200);
+ Blynk.begin(auth, ssid, pass);
+}
+void loop()
+{
+ Blynk.run();
+}
+client.println("Content-Type: text/html");
+ client.println(); // IMPORTANT
+ client.println("<!DOCTYPE HTML>");
+ client.println("<html>");
+ client.println("<head>");
+ client.println("<meta name=\"viewport\" content=\"width=device-width,
+initial-scale=1\">");
+ client.println("<link rel=\"icon\" href=\"data:,\">");
+ /* CSS Styling for Buttons and Web Page */
+ client.println("<style>");
+ client.println("html { font-family: Courier New; display: inline-block;
+margin: 0px auto; text-align: center;}");
+ client.println(".button {border: none; color: white; padding: 10px 20px;
+text-align: center;");
+ client.println("text-decoration: none; font-size: 25px; margin: 2px;
+cursor: pointer;}");
+ client.println(".button1 {background-color: #13B3F0;}");
+ client.println(".button2 {background-color: #3342FF;}");
+ client.println("</style>");
+ client.println("</head>");
+
+ /* The main body of the Web Page */
+ client.println("<body>");
+ client.println("<h2>ESP8266 Web Server</h2>");
+
+ if(gpio16Value == LOW)
+ {
+ client.println("<p>GPIO16 LED Status: OFF</p>");
+ client.print("<p><a href=\"/GPIO16ON\"><button class=\"button
+button1\">Click to turn ON</button></a></p>");
+ }
+ else
+ {
+ client.println("<p>GPIO16 LED Status: ON</p>");
+ client.print("<p><a href=\"/GPIO16OFF\"><button class=\"button
+button2\">Click to turn OFF</button></a></p>");
+ }
+
+ if(gpio2Value == LOW)
+ {
+ client.println("<p>GPIO2 LED Status: OFF</p>");
+ client.print("<p><a href=\"/GPIO2ON\"><button class=\"button
+button1\">Click to turn ON</button></a></p>");
+ }
+ else
+ {
+ client.println("<p>GPIO2 LED Status: ON</p>");
+ client.print("<p><a href=\"/GPIO2OFF\"><button class=\"button
+button2\">Click to turn OFF</button></a></p>");
+ }
+ if(gpio15Value == LOW)
+ {
+ client.println("<p>GPIO15 LED Status: OFF</p>");
+38
+ client.print("<p><a href=\"/GPIO15ON\"><button class=\"button
+button1\">Click to turn ON</button></a></p>");
+ }
+ else
+ {
+ client.println("<p>GPIO15 LED Status: ON</p>");
+ client.print("<p><a href=\"/GPIO15OFF\"><button class=\"button
+button2\">Click to turn OFF</button></a></p>");
+ }
+ client.println("</body>");
+ client.println("</html>");
+ client.print("\n");
+
+ delay(1);
+ /* Close the connection */
+ client.stop();
+ Serial.println("Client disconnected");
+ Serial.print("\n");
+}
+
+
+8.
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include "DHT.h"
+// Uncomment one of the lines below for whatever DHT sensor type you're
+using!
+#define DHTTYPE DHT11 // DHT 11
+//#define DHTTYPE DHT21 // DHT 21 (AM2301)
+//#define DHTTYPE DHT22 // DHT 22 (AM2302), AM2321
+/*Put your SSID & Password*/
+const char* ssid = "happyfy"; // Enter SSID here
+const char* password = "asdfghjkl"; //Enter Password here
+ESP8266WebServer server(80);
+// DHT Sensor
+uint8_t DHTPin = D8;
+
+// Initialize DHT sensor.
+DHT dht(DHTPin, DHTTYPE); 41
+float Temperature;
+float Humidity;
+void setup() {
+ Serial.begin(115200);
+ delay(100);
+
+ pinMode(DHTPin, INPUT);
+ dht.begin();
+ Serial.println("Connecting to ");
+ Serial.println(ssid);
+ //connect to your local wi-fi network
+ WiFi.begin(ssid, password);
+ //check wi-fi is connected to wi-fi network
+ while (WiFi.status() != WL_CONNECTED) {
+ delay(1000);
+ Serial.print(".");
+ }
+ Serial.println("");
+ Serial.println("WiFi connected..!");
+ Serial.print("Got IP: "); Serial.println(WiFi.localIP());
+ server.on("/", handle_OnConnect);
+ server.onNotFound(handle_NotFound);
+ server.begin();
+ Serial.println("HTTP server started");
+}
+void loop() {
+
+ server.handleClient();
+
+}
+void handle_OnConnect() {
+Temperature = dht.readTemperature(); // Gets the values of the temperature
+ Humidity = dht.readHumidity(); // Gets the values of the humidity
+ server.send(200, "text/html", SendHTML(Temperature,Humidity));
+}
+void handle_NotFound(){
+ server.send(404, "text/plain", "Not found");
+}
+String SendHTML(float Temperaturestat,float Humiditystat){
+ String ptr = "<!DOCTYPE html> <html>\n";
+ ptr +="<head><meta name=\"viewport\" content=\"width=device-width,
+initial-scale=1.0, user-scalable=no\">\n"; 42
+ ptr +="<title>ESP8266 Weather Report</title>\n";
+ ptr +="<style>html { font-family: Helvetica; display: inline-block;
+margin: 0px auto; text-align: center;}\n";
+ ptr +="body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto
+30px;}\n";
+ ptr +="p {font-size: 24px;color: #444444;margin-bottom: 10px;}\n";
+ ptr +="</style>\n";
+ ptr +="</head>\n";
+ ptr +="<body>\n";
+ ptr +="<div id=\"webpage\">\n";
+ ptr +="<h1>ESP8266 NodeMCU Weather Report</h1>\n";
+
+ ptr +="<p>Temperature: ";
+ ptr +=(int)Temperaturestat;
+ ptr +="°C</p>";
+ ptr +="<p>Humidity: ";
+ ptr +=(int)Humiditystat;
+ ptr +="%</p>";
+
+ ptr +="</div>\n";
+ ptr +="</body>\n";
+ ptr +="</html>\n";
+ return ptr;
+}
+
+9.
+
+String voice = "";
+void setup()
+{
+ Serial.begin(9600);
+ pinMode(D1,OUTPUT);
+}
+void loop()
+{
+ while(Serial.available())
+ {
+ char c = Serial.read();
+ voice = voice + c;
+ }
+Serial.println(voice);
+45
+if(voice == "light on")
+{
+ digitalWrite(D1,LOW);// Relay module needs a low to TURN ON
+}
+if(voice == "light off")
+{
+ digitalWrite(D1,HIGH);// Relay module needs a HIGH to TURN OFF
+}
+delay(1000);
+}
+
+10.
+
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include "DHT.h"
+// Uncomment one of the lines below for whatever DHT sensor type you're
+using!
+#define DHTTYPE DHT11 // DHT 11
+//#define DHTTYPE DHT21 // DHT 21 (AM2301)
+//#define DHTTYPE DHT22 // DHT 22 (AM2302), AM2321
+/*Put your SSID & Password*/
+const char* ssid = "happyfy"; // Enter SSID here
+const char* password = "asdfghjkl"; //Enter Password here
+ESP8266WebServer server(80);
+// DHT Sensor
+uint8_t DHTPin = D8;
+
+// Initialize DHT sensor. 48
+DHT dht(DHTPin, DHTTYPE);
+float Temperature;
+float Humidity;
+void setup() {
+ Serial.begin(115200);
+ delay(100);
+
+ pinMode(DHTPin, INPUT);
+ dht.begin();
+ Serial.println("Connecting to ");
+ Serial.println(ssid);
+ //connect to your local wi-fi network
+ WiFi.begin(ssid, password);
+ //check wi-fi is connected to wi-fi network
+ while (WiFi.status() != WL_CONNECTED) {
+ delay(1000);
+ Serial.print(".");
+ }
+ Serial.println("");
+ Serial.println("WiFi connected..!");
+ Serial.print("Got IP: "); Serial.println(WiFi.localIP());
+ server.on("/", handle_OnConnect);
+ server.onNotFound(handle_NotFound);
+ server.begin();
+ Serial.println("HTTP server started");
+}
+void loop() {
+
+ server.handleClient();
+
+}
+void handle_OnConnect() {
+Temperature = dht.readTemperature(); // Gets the values of the temperature
+ Humidity = dht.readHumidity(); // Gets the values of the humidity
+ server.send(200, "text/html", SendHTML(Temperature,Humidity));
+}
+void handle_NotFound(){
+ server.send(404, "text/plain", "Not found");
+}
+String SendHTML(float Temperaturestat,float Humiditystat){
+ String ptr = "<!DOCTYPE html> <html>\n";
+49
+ ptr +="<head><meta name=\"viewport\" content=\"width=device-width,
+initial-scale=1.0, user-scalable=no\">\n";
+ ptr +="<title>ESP8266 Weather Report</title>\n";
+ ptr +="<style>html { font-family: Helvetica; display: inline-block;
+margin: 0px auto; text-align: center;}\n";
+ ptr +="body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto
+30px;}\n";
+ ptr +="p {font-size: 24px;color: #444444;margin-bottom: 10px;}\n";
+ ptr +="</style>\n";
+ ptr +="</head>\n";
+ ptr +="<body>\n";
+ ptr +="<div id=\"webpage\">\n";
+ ptr +="<h1>ESP8266 NodeMCU Weather Report</h1>\n";
+
+ ptr +="<p>Temperature: ";
+ ptr +=(int)Temperaturestat;
+ ptr +="°C</p>";
+ ptr +="<p>Humidity: ";
+ ptr +=(int)Humiditystat;
+ ptr +="%</p>";
+
+ ptr +="</div>\n";
+ ptr +="</body>\n";
+ ptr +="</html>\n";
+ return ptr;
+}
+
